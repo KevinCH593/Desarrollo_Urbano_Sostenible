@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Editar Proyecto Urbano</h1>
+
+    <div class="card p-4">
+        <form action="{% url 'EditarProyecto' proyecto.id %}" method="post" id="form_editar_proyecto">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del Proyecto</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ proyecto.nombre }}">
+            </div>
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion">{{ proyecto.descripcion }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="ubicacion" class="form-label">Ubicación</label>
+                <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ proyecto.ubicacion }}">
+            </div>
+            <div class="mb-3">
+                <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ proyecto.fecha_inicio|date:'Y-m-d' }}">
+            </div>
+            <div class="mb-3">
+                <label for="fecha_fin" class="form-label">Fecha de Finalización</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ proyecto.fecha_fin|date:'Y-m-d' }}">
+            </div>
+            <div class="mb-3">
+                <label for="contratistas" class="form-label">Contratistas</label>
+                <select class="form-select" id="contratista" name="contratista" required>
+                    <option value="">Seleccione un Contratista</option>
+                    {% for contratista in contratistas %}
+                    <option value="{{ contratista.id }}" {% if contratista.id == proyecto.contratista.id %}selected{% endif %}>
+                        {{ contratista.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>                
+            </div>                                             
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Actualizar</button>
+                <a href="{% url 'VerProyectos' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#form_editar_proyecto").validate({
+            rules: {
+                nombre: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                descripcion: {
+                    required: true,
+                    minlength: 10,
+                    maxlength: 255
+                },
+                ubicacion: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 255
+                },
+                fecha_inicio: {
+                    required: true,
+                    date: true
+                },
+                fecha_fin: {
+                    required: true,
+                    date: true
+                },
+                contratista: {
+                    required: true
+                }
+            },
+            messages: {
+                nombre: {
+                    required: "Por favor, ingrese el nombre del contratista.",
+                    minlength: "El nombre debe tener al menos 3 caracteres.",
+                    maxlength: "El nombre debe tener como máximo 255 caracteres."
+                },
+                descripcion: {
+                    required: "Por favor, ingrese la descripción del proyecto.",
+                    minlength: "La descripción debe tener al menos 10 caracteres.",
+                    maxlength: "La descripción debe tener como máximo 255 caracteres."
+                },
+                ubicacion: {
+                    required: "Por favor, ingrese la ubicación del proyecto.",
+                    minlength: "La ubicación debe tener al menos 5 caracteres.",
+                    maxlength: "La ubicación debe tener como máximo 255 caracteres."
+                },
+                fecha_inicio: {
+                    required: "Por favor, ingrese la fecha de inicio del proyecto.",
+                    date: "El formato de fecha de inicio es incorrecto."
+                },
+                fecha_fin: {
+                    required: "Por favor, ingrese la fecha de fin del proyecto.",
+                    date: "El formato de fecha de fin es incorrecto."
+                },
+                contratista: {
+                    required: "Por favor, seleccione un contratista."
+                }    
+            },
+            errorClass: "is-invalid", // Agrega la clase de Bootstrap para errores
+            validClass: "is-valid",   // Agrega la clase de Bootstrap para éxito
+            errorPlacement: function(error, element) {
+            error.addClass("invalid-feedback"); // Clase para Bootstrap
+            element.closest(".mb-3").append(error);
+            }
+        });
+    });
+</script>
+{% endblock %}

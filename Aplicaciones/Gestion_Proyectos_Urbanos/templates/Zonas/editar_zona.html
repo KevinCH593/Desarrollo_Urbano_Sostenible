@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Editar Zona Verde</h1>
+
+    <div class="card p-4">
+        <form action="{% url 'EditarZona' zona.id %}" method="post" id="form_editar_zona" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ zona.nombre }}">
+            </div>
+            <div class="mb-3">
+                <label for="area" class="form-label">Área (m²)</label>
+                <input type="number" class="form-control" id="area" name="area" step="0.01" value="{{ zona_area }}">
+            </div>         
+            <div class="mb-3">
+                <label for="ubicacion" class="form-label">Ubicación</label>
+                <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ zona.ubicacion }}">
+            </div>
+            <div class="mb-3">
+                <label for="proyecto" class="form-label">Proyecto</label>
+                <select class="form-select" id="proyecto" name="proyecto">
+                    <option value="">Seleccione un Proyecto</option>
+                    {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.id }}" {% if proyecto.id == zona.proyecto.id %}selected{% endif %}>{{ proyecto.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="foto" class="form-label">Foto</label>
+                <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
+                <div class="mt-2">
+                    <img id="previewImagen" src="{% if zona.foto %}{{ zona.foto.url }}{% endif %}" class="img-thumbnail" width="100">
+                </div>
+            </div>                  
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Actualizar</button>
+                <a href="{% url 'VerZonas' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Script para jQuery Validate -->
+<script>
+    $(document).ready(function () {
+        $("#form_editar_zona").validate({
+            rules: {
+                nombre: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                area: {
+                    required: true,
+                    number: true
+                },
+                ubicacion: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                    },
+                proyecto: {
+                    required: true
+                },
+                foto: {
+                    required: true
+                }
+            },
+            messages: {
+                nombre: {
+                    required: "Por favor, ingrese el nombre del proyecto.",
+                    minlength: "El nombre debe tener al menos 3 caracteres.",
+                    maxlength: "El nombre debe tener como máximo 255 caracteres."
+                },
+                area: {
+                    required: "Por favor, ingrese el área del proyecto.",
+                    number: "El área debe ser un número."
+                },
+                ubicacion: {
+                    required: "Por favor, ingrese la ubicación del proyecto.",
+                    minlength: "La ubicación debe tener al menos 3 caracteres.",
+                    maxlength: "La ubicación debe tener como máximo 255 caracteres."
+                },
+                proyecto: {
+                    required: "Por favor, seleccione un proyecto."
+                },
+                foto: {
+                    required: "Por favor, seleccione una foto del proyecto."
+                }
+            },
+            errorClass: "is-invalid",
+            validClass: "is-valid",
+            errorPlacement: function(error, element) {
+                error.addClass("invalid-feedback");
+                element.closest(".mb-3").append(error);
+            }
+        });
+    });
+</script>
+<!-- Script para mostrar/ocultar imagen al cambiar el archivo -->
+<script>
+    document.getElementById('foto').addEventListener('change', function(event) {
+        let preview = document.getElementById('previewImagen');
+        let file = event.target.files[0];
+
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none'); // Muestra la imagen
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = "{% if zona.foto %}{{ zona.foto.url }}{% endif %}"; // Mantiene la imagen actual si no hay archivo nuevo
+        }
+    });
+</script>
+
+
+{% endblock %}

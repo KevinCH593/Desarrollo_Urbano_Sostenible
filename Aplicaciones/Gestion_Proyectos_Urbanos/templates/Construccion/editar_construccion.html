@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Editar Construcción</h1>
+
+    <div class="card p-4">
+        <form action="{% url 'EditarConstruccion' construccion.id %}" method="post" id="form_editar_construccion">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre de la Construcción</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ construccion.nombre }}">
+            </div>
+            <div class="mb-3">
+                <label for="tipo" class="form-label">Tipo</label>
+                <input type="text" class="form-control" id="tipo" name="tipo" value="{{ construccion.tipo }}">
+            </div>
+            <div class="mb-3">
+                <label for="materiales" class="form-label">Materiales Sostenibles</label>
+                <input type="text" class="form-control" id="materiales" name="materiales" value="{{ construccion.materiales_sostenibles }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Eficiencia Energética</label>
+                <div>
+                    <input type="radio" id="si" name="eficiencia" value="si" {% if construccion.eficiencia_energetica %}checked{% endif %}>
+                    <label for="si">Sí</label>
+                </div>
+                <div>
+                    <input type="radio" id="no" name="eficiencia" value="no" {% if not construccion.eficiencia_energetica %}checked{% endif %}>
+                    <label for="no">No</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="proyecto" class="form-label">Proyecto</label>
+                <select class="form-select" id="proyecto" name="proyecto">
+                    <option value="">Seleccione un Proyecto</option>
+                    {% for proyecto in proyectos %}
+                    <option value="{{ proyecto.id }}" {% if construccion.proyecto.id == proyecto.id %}selected{% endif %}>
+                        {{ proyecto.nombre }}
+                    </option>
+                    {% endfor %}
+                </select> 
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Actualizar</button>
+                <a href="{% url 'VerConstrucciones' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#form_editar_construccion").validate({
+            rules: {
+                nombre: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                tipo: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                materiales: {
+                    required: true,
+                    minlength: 3
+                },
+                eficiencia: {
+                    required: true
+                },
+                proyecto: {
+                    required: true
+                }
+            },
+            messages: {
+                nombre: {
+                    required: "Por favor, ingrese el nombre de la construcción.",
+                    minlength: "El nombre debe tener al menos 3 caracteres.",
+                    maxlength: "El nombre no puede tener más de 255 caracteres."
+                },
+                tipo: {
+                    required: "Por favor, ingrese el tipo de construcción.",
+                    minlength: "El tipo debe tener al menos 3 caracteres.",
+                    maxlength: "El tipo no puede tener más de 255 caracteres."
+                },
+                materiales: {
+                    required: "Por favor, ingrese los materiales sostenibles.",
+                    minlength: "Los materiales deben tener al menos 3 caracteres."
+                },
+                eficiencia: {
+                    required: "Por favor, seleccione la eficiencia energética."
+                },
+                proyecto: {
+                    required: "Por favor, seleccione un proyecto."
+                }
+            },
+            errorClass: "is-invalid",
+            validClass: "is-valid",
+            errorPlacement: function(error, element) {
+                error.addClass("invalid-feedback");
+                element.closest(".mb-3").append(error);
+            }
+        });
+    });
+</script>
+{% endblock %}

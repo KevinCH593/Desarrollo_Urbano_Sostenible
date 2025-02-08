@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Gestión de Zonas Verdes</h1>
+
+    <!-- Botón para abrir el modal de agregar -->
+    <div class="text-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addZonaModal">Agregar Nueva Zona Verde</button>
+    </div>
+
+    <!-- Tabla de zonas verdes -->
+    <table id="tabla_zonas" class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Área (m²)</th>
+                <th>Ubicación</th>
+                <th>Proyecto</th>
+                <th>Foto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for zona in zonas %}
+            <tr>
+                <td>{{ zona.id }}</td>
+                <td>{{ zona.nombre }}</td>
+                <td>{{ zona.area }}</td>
+                <td>{{ zona.ubicacion }}</td>
+                <td>{{ zona.proyecto.nombre }}</td>
+                <td>
+                    {% if zona.foto %}
+                        <img src="{{ zona.foto.url }}" alt="{{ zona.nombre }}" class="img-thumbnail" width="100">
+                    {% else %}
+                        No disponible
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'EditarZona' zona.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'EliminarZona' zona.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar esta zona?');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No hay zonas verdes registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para agregar nueva zona verde -->
+<div class="modal fade" id="addZonaModal" tabindex="-1" aria-labelledby="addZonaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addZonaModalLabel">Agregar Nueva Zona Verde</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'AgregarZona' %}" method="post" id="form_agregar_zona" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre">
+                    </div>
+                    <div class="mb-3">
+                        <label for="area" class="form-label">Área (m²)</label>
+                        <input type="number" step="0.01" class="form-control" id="area" name="area">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ubicacion" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="ubicacion" name="ubicacion">
+                    </div>
+                    <div class="mb-3">
+                        <label for="proyecto" class="form-label">Proyecto</label>
+                        <select class="form-select" id="proyecto" name="proyecto">
+                            <option value="">Seleccione un Proyecto</option>
+                            {% for proyecto in proyectos %}
+                                <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">Foto</label>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
+                        <div class="mt-2">
+                            <img id="previewImagen" src="" class="img-thumbnail d-none" width="100">
+                        </div>
+                    </div>                    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Script para jQuery Validate -->
+<script>
+    $(document).ready(function () {
+        $("#form_agregar_zona").validate({
+            rules: {
+                nombre: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                area: {
+                    required: true,
+                    number: true
+                },
+                ubicacion: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                    },
+                proyecto: {
+                    required: true
+                },
+                foto: {
+                    required: true
+                }
+            },
+            messages: {
+                nombre: {
+                    required: "Por favor, ingrese el nombre del proyecto.",
+                    minlength: "El nombre debe tener al menos 3 caracteres.",
+                    maxlength: "El nombre debe tener como máximo 255 caracteres."
+                },
+                area: {
+                    required: "Por favor, ingrese el área del proyecto.",
+                    number: "El área debe ser un número."
+                },
+                ubicacion: {
+                    required: "Por favor, ingrese la ubicación del proyecto.",
+                    minlength: "La ubicación debe tener al menos 3 caracteres.",
+                    maxlength: "La ubicación debe tener como máximo 255 caracteres."
+                },
+                proyecto: {
+                    required: "Por favor, seleccione un proyecto."
+                },
+                foto: {
+                    required: "Por favor, seleccione una foto del proyecto."
+                }
+            },
+            errorClass: "is-invalid",
+            validClass: "is-valid",
+            errorPlacement: function(error, element) {
+                error.addClass("invalid-feedback");
+                element.closest(".mb-3").append(error);
+            }
+        });
+    });
+</script>
+<!-- Script para inicializar DataTable -->
+<script>
+    $(document).ready(function() {
+        $('#tabla_zonas').DataTable({
+            dom: 'Bfrtip', // Agregar botones de exportación y filtros
+            buttons: [
+                'copy', 'excel', 'pdf', 'colvis' // Copiar, Excel, PDF y Visibilidad de columnas
+            ],
+            language: {
+                sEmptyTable: "No hay datos disponibles",
+                sInfo: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                sInfoEmpty: "Mostrando 0 a 0 de 0 entradas",
+                sInfoFiltered: "(filtrado de _MAX_ entradas)",
+                sLengthMenu: "Mostrar _MENU_ entradas",
+                sLoadingRecords: "Cargando...",
+                sProcessing: "Procesando...",
+                sSearch: "Buscar:",
+                sZeroRecords: "No se encontraron resultados",
+                oPaginate: {
+                    sFirst: "Primero",
+                    sLast: "Último",
+                    sNext: "Siguiente",
+                    sPrevious: "Anterior"
+                }
+            },
+            lengthMenu: [[5, 10, 15, 20], [5, 10, 15, 20]],
+            initComplete: function() {
+                $('input[type="search"]').css({
+                    "width": "400px",
+                    "padding": "8px"
+                }).attr("placeholder", "Buscar en la tabla...");
+            }
+        });
+    });
+</script>
+
+<!-- Script para previsualizar la imagen seleccionada -->
+<script>
+    document.getElementById('foto').addEventListener('change', function(event) {
+        let preview = document.getElementById('previewImagen');
+        let file = event.target.files[0];
+
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none'); // Mostrar imagen
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = "";
+            preview.classList.add('d-none'); // Ocultar si no hay imagen
+        }
+    });
+</script>
+
+{% endblock %}

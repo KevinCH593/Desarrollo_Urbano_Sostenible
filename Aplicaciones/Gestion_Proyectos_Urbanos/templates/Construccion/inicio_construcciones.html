@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Gestión de Construcciones</h1>
+
+    <!-- Botón para abrir el modal de agregar -->
+    <div class="text-end mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addConstruccionModal">Agregar Nueva Construcción</button>
+    </div>
+
+    <!-- Tabla de construcciones -->
+    <table id="tabla_construcciones" class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Materiales></th>
+                <th>Eficiencia</th>
+                <th>Proyecto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for construccion in construcciones %}
+            <tr>
+                <td>{{ construccion.id }}</td>
+                <td>{{ construccion.nombre }}</td>
+                <td>{{ construccion.tipo }}</td>
+                <td>{{ construccion.materiales_sostenibles }}</td>
+                <td>
+                    {% if construccion.eficiencia_energetica %}
+                        Sí
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>                
+                <td>{{ construccion.proyecto }}</td>
+                <td>
+                    <a href="{% url 'EditarConstruccion' construccion.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{% url 'EliminarConstruccion' construccion.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este construccion?');">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No hay construcciones registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para agregar nueva construccion -->
+<div class="modal fade" id="addConstruccionModal" tabindex="-1" aria-labelledby="addConstruccionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addConstruccionModalLabel">Agregar Nueva Construcción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'AgregarConstruccion' %}" method="post" id="form_agregar_construccion">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre del Construcción</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre">
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <input type="text" class="form-control" id="tipo" name="tipo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="materiales" class="form-label">Materiales Sostenibles</label>
+                        <input type="text" class="form-control" id="materiales" name="materiales">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Eficiencia Energética</label>
+                        <div>
+                            <input type="radio" id="si" name="eficiencia" value="si">
+                            <label for="si">Sí</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="no" name="eficiencia" value="no">
+                            <label for="no">No</label>
+                        </div>
+                    </div>                                                        
+                    <div class="mb-3">
+                        <label for="proyecto" class="form-label">Proyecto</label>
+                        <select class="form-select" id="proyecto" name="proyecto">
+                            <option value="">Seleccione un Proyecto</option>
+                            {% for proyecto in proyectos %}
+                            <option value="{{ proyecto.id }}" {% if construccion.proyecto and construccion.proyecto.id == proyecto.id %}selected{% endif %}>
+                                {{ proyecto.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select> 
+                    </div>                                                           
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <a href="{% url 'VerConstrucciones' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Script para jQuery Validate -->
+<script>
+    $(document).ready(function () {
+        $("#form_agregar_construccion").validate({
+            rules: {
+                nombre: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                tipo: {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255
+                },
+                materiales: {
+                    required: true,
+                    minlength: 3,
+                },
+                eficiencia: {
+                    required: true
+                },
+                proyecto: {
+                    required: true
+                }
+            },
+            messages: {
+                nombre: {
+                    required: "Por favor, ingrese el nombre del contratista.",
+                    minlength: "El nombre debe tener al menos 3 caracteres.",
+                    maxlength: "El nombre no puede tener más de 255 caracteres."
+                },
+                tipo: {
+                    required: "Por favor, ingrese el tipo de contratista.",
+                    minlength: "El tipo debe tener al menos 3 caracteres.",
+                    maxlength: "El tipo no puede tener más de 255 caracteres."
+                },
+                materiales: {
+                    required: "Por favor, ingrese los materiales sostenibles.",
+                    minlength: "Los materiales deben tener al menos 3 caracteres."
+                },
+                eficiencia: {
+                    required: "Por favor, seleccione la eficiencia energética."
+                },
+                proyecto: {
+                    required: "Por favor, seleccione un proyecto."
+                }
+            },
+            errorClass: "is-invalid", // Agrega la clase de Bootstrap para errores
+            validClass: "is-valid",   // Agrega la clase de Bootstrap para éxito
+            errorPlacement: function(error, element) {
+            error.addClass("invalid-feedback"); // Clase para Bootstrap
+            element.closest(".mb-3").append(error);
+        }
+        });
+    });
+</script>
+<!-- Script para inicializar DataTable -->
+<script>
+    $(document).ready(function() {
+        $('#tabla_construcciones').DataTable({
+            dom: 'Bfrtip', // Agregar botones de exportación y filtros
+            buttons: [
+                'copy', 'excel', 'pdf', 'colvis' // Copiar, Excel, PDF y Visibilidad de columnas
+            ],
+            language: {
+                sEmptyTable: "No hay datos disponibles",
+                sInfo: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                sInfoEmpty: "Mostrando 0 a 0 de 0 entradas",
+                sInfoFiltered: "(filtrado de _MAX_ entradas)",
+                sLengthMenu: "Mostrar _MENU_ entradas",
+                sLoadingRecords: "Cargando...",
+                sProcessing: "Procesando...",
+                sSearch: "Buscar:",
+                sZeroRecords: "No se encontraron resultados",
+                oPaginate: {
+                    sFirst: "Primero",
+                    sLast: "Último",
+                    sNext: "Siguiente",
+                    sPrevious: "Anterior"
+                }
+            },
+            lengthMenu: [[5, 10, 15, 20], [5, 10, 15, 20]],
+            initComplete: function() {
+                $('input[type="search"]').css({
+                    "width": "400px",
+                    "padding": "8px"
+                }).attr("placeholder", "Buscar en la tabla...");
+            }
+        });
+    });
+</script>
+
+{% endblock %}
